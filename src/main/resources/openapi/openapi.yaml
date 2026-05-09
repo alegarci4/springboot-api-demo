@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Workshop Spring Boot API
+  description: API REST del workshop de Spring Boot 3.x con JDK 17
+  version: 1.0.0
+  contact:
+    name: Workshop Progra 3
+
+servers:
+  - url: http://localhost:8081/api/v1
+    description: Servidor local
+
+tags:
+  - name: workshop
+    description: Health y saludos del workshop
+  - name: simulaciones
+    description: Simulador de prestamo
+  - name: demo-estado
+    description: Demo singleton vs instancia manual
+
+paths:
+
+  /:
+    get:
+      tags: [workshop]
+      summary: Health check del workshop
+      operationId: getWorkshopHealth
+      responses:
+        "200":
+          description: API activa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    type: string
+                    example: ok
+                  mensaje:
+                    type: string
+                    example: Workshop Spring Boot activo
+
+  /saludos:
+    get:
+      tags: [workshop]
+      summary: Saludo por GET con query param
+      operationId: saludarPorGet
+      parameters:
+        - name: nombre
+          in: query
+          required: false
+          schema:
+            type: string
+            default: Mundo
+      responses:
+        "200":
+          description: Saludo generado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaludoResponse"
+
+    post:
+      tags: [workshop]
+      summary: Saludo por POST con body validado
+      operationId: saludarPorPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaludoRequest"
+      responses:
+        "200":
+          description: Saludo generado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaludoResponse"
+        "400":
+          description: Datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /simulaciones/prestamo:
+    post:
+      tags: [simulaciones]
+      summary: Simular prestamo con cuota fija
+      operationId: simularPrestamo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrestamoRequest"
+      responses:
+        "200":
+          description: Resultado de la simulacion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrestamoResponse"
+        "400":
+          description: Datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /demo/estado/singleton/{valor}:
+    post:
+      tags: [demo-estado]
+      summary: Actualizar valor en bean singleton
+      operationId: actualizarSingleton
+      parameters:
+        - name: valor
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Valor actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadoResponse"
+
+  /demo/estado/singleton:
+    get:
+      tags: [demo-estado]
+      summary: Obtener valor actual del singleton
+      operationId: obtenerSingleton
+      responses:
+        "200":
+          description: Valor actual
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadoResponse"
+
+  /demo/estado/singleton/reset:
+    post:
+      tags: [demo-estado]
+      summary: Reiniciar valor del singleton a 0
+      operationId: reiniciarSingleton
+      responses:
+        "200":
+          description: Valor reiniciado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadoResponse"
+
+  /demo/estado/manual/{valor}:
+    post:
+      tags: [demo-estado]
+      summary: Actualizar valor en instancia manual
+      operationId: actualizarManual
+      parameters:
+        - name: valor
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Valor de la instancia creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadoResponse"
+
+  /demo/estado/manual:
+    get:
+      tags: [demo-estado]
+      summary: Obtener valor de instancia manual (siempre 0)
+      operationId: obtenerManual
+      responses:
+        "200":
+          description: Siempre devuelve 0
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadoResponse"
+
+components:
+  schemas:
+
+    SaludoRequest:
+      type: object
+      required: [nombre]
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: Ana
+
+    SaludoResponse:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: "Hola, Ana. Bienvenido a Spring Boot 3!"
+        timestamp:
+          type: string
+          format: date-time
+
+    PrestamoRequest:
+      type: object
+      required: [monto, tasaAnual, meses]
+      properties:
+        monto:
+          type: number
+          minimum: 0.01
+          example: 10000
+        tasaAnual:
+          type: number
+          minimum: 0.01
+          example: 12
+        meses:
+          type: integer
+          minimum: 1
+          maximum: 360
+          example: 24
+
+    PrestamoResponse:
+      type: object
+      properties:
+        cuotaMensual:
+          type: number
+          example: 470.73
+        interesTotal:
+          type: number
+          example: 1297.52
+        totalPagar:
+          type: number
+          example: 11297.52
+
+    EstadoResponse:
+      type: object
+      properties:
+        tipo:
+          type: string
+          example: singleton
+        valorActual:
+          type: integer
+          example: 25
+
+    ErrorResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+          example: VALIDATION_ERROR
+        mensaje:
+          type: string
+          example: Uno o mas campos son invalidos
+        timestamp:
+          type: string
+          format: date-time
+        detalles:
+          type: object
+          additionalProperties:
+            type: string

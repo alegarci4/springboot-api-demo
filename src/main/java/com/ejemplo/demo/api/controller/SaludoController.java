@@ -1,18 +1,16 @@
 package com.ejemplo.demo.api.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import java.util.Map;
+import com.ejemplo.demo.api.dto.SaludoRequest;
 import com.ejemplo.demo.api.dto.SaludoResponse;
 import com.ejemplo.demo.domain.service.SaludoService;
-import org.springframework.web.bind.annotation.RequestParam;
-import com.ejemplo.demo.api.dto.SaludoRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
+@Tag(name = "workshop", description = "Health y saludos del workshop")
 @RestController
 @RequestMapping("/api/v1")
 public class SaludoController {
@@ -23,23 +21,26 @@ public class SaludoController {
         this.saludoService = saludoService;
     }
 
+    @Operation(operationId = "getWorkshopHealth", summary = "Health check del workshop")
     @GetMapping
-    public ResponseEntity<Map<String, String>> health() {
+    public ResponseEntity<Map<String, String>> getWorkshopHealth() {
         return ResponseEntity.ok(Map.of(
                 "estado", "ok",
                 "mensaje", "Workshop Spring Boot activo"
         ));
     }
 
+    @Operation(operationId = "saludarPorGet", summary = "Saludo por GET con query param")
     @GetMapping("/saludos")
-    public ResponseEntity<SaludoResponse> saludar(
-            @RequestParam(defaultValue = "Mundo") String nombre
-    ) {
+    public ResponseEntity<SaludoResponse> saludarPorGet(
+            @RequestParam(defaultValue = "Mundo") String nombre) {
         return ResponseEntity.ok(saludoService.crearSaludo(nombre));
     }
 
+    @Operation(operationId = "saludarPorPost", summary = "Saludo por POST con body validado")
     @PostMapping("/saludos")
-    public ResponseEntity<SaludoResponse> saludarPost(@Valid @RequestBody SaludoRequest request) {
-        return ResponseEntity.ok(saludoService.crearSaludo(request.nombre()));
+    public ResponseEntity<SaludoResponse> saludarPorPost(
+            @Valid @RequestBody SaludoRequest saludoRequest) {
+        return ResponseEntity.ok(saludoService.crearSaludo(saludoRequest.nombre()));
     }
 }
